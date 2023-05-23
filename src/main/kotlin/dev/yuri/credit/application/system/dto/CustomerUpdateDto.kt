@@ -6,15 +6,15 @@ import jakarta.validation.constraints.NotNull
 import java.math.BigDecimal
 
 data class CustomerUpdateDto(
-        @field:NotEmpty(message = "First name cannot be empty")
+        @field:NotEmpty(message = "First name is required.")
         val firstName: String,
-        @field:NotEmpty(message = "Last name cannot be empty")
+        @field:NotEmpty(message = "Last name is required.")
         val lastName: String,
-        @field:NotNull(message = "Income cannot be null")
+        @field:NotNull(message = "Income is required.")
         val income: BigDecimal,
-        @field:NotEmpty(message = "Zipcode cannot be empty")
+        @field:NotEmpty(message = "Zipcode is required.")
         val zipCode: String,
-        @field:NotEmpty(message = "Street cannot be empty")
+        @field:NotEmpty(message = "Street is required.")
         val street: String
 ) {
     fun toEntity(customer: Customer): Customer {
