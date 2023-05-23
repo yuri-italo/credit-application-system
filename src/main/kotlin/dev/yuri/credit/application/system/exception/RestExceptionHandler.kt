@@ -12,7 +12,7 @@ import java.time.LocalDateTime
 @RestControllerAdvice
 class RestExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException::class)
-    fun handlerValidException(e: MethodArgumentNotValidException): ResponseEntity<ExceptionDetails> {
+    fun handleValidationException(e: MethodArgumentNotValidException): ResponseEntity<ExceptionDetails> {
         val errors: MutableMap<String, String?> = HashMap()
         e.bindingResult.allErrors.stream().forEach {
             it ->
@@ -23,7 +23,7 @@ class RestExceptionHandler {
 
         return ResponseEntity(
                 ExceptionDetails(
-                        title = "Bad Request! Consult the documentation",
+                        title = "Validation Error",
                         timeStamp = LocalDateTime.now(),
                         status = HttpStatus.BAD_REQUEST.value(),
                         exception = e.javaClass.name,
@@ -33,10 +33,10 @@ class RestExceptionHandler {
     }
 
     @ExceptionHandler(DataAccessException::class)
-    fun handlerValidException(e: DataAccessException): ResponseEntity<ExceptionDetails> {
+    fun handleDataAccessException(e: DataAccessException): ResponseEntity<ExceptionDetails> {
         return ResponseEntity(
                 ExceptionDetails(
-                        title = "Conflict! Consult the documentation",
+                        title = "Data Access Error",
                         timeStamp = LocalDateTime.now(),
                         status = HttpStatus.CONFLICT.value(),
                         exception = e.javaClass.name,
@@ -46,10 +46,10 @@ class RestExceptionHandler {
     }
 
     @ExceptionHandler(BusinessException::class)
-    fun handlerValidException(e: BusinessException): ResponseEntity<ExceptionDetails> {
+    fun handleBusinessException(e: BusinessException): ResponseEntity<ExceptionDetails> {
         return ResponseEntity(
                 ExceptionDetails(
-                        title = "Bad Request! Consult the documentation",
+                        title = "Business Error",
                         timeStamp = LocalDateTime.now(),
                         status = HttpStatus.BAD_REQUEST.value(),
                         exception = e.javaClass.name,
@@ -59,10 +59,10 @@ class RestExceptionHandler {
     }
 
     @ExceptionHandler(IllegalArgumentException::class)
-    fun handlerValidException(e: IllegalArgumentException): ResponseEntity<ExceptionDetails> {
+    fun handleIllegalArgumentException(e: IllegalArgumentException): ResponseEntity<ExceptionDetails> {
         return ResponseEntity(
                 ExceptionDetails(
-                        title = "Bad Request! Consult the documentation",
+                        title = "Invalid Argument Error",
                         timeStamp = LocalDateTime.now(),
                         status = HttpStatus.BAD_REQUEST.value(),
                         exception = e.javaClass.name,

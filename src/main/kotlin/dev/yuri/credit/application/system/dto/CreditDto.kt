@@ -10,14 +10,14 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 data class CreditDto(
-        @field:NotNull(message = "Credit value cannot be null")
+        @field:NotNull(message = "Credit value is required.")
         val creditValue: BigDecimal,
-        @field:Future(message = "Day first of installment cannot be a past or present date")
+        @field:Future(message = "The day of the first installment must be in the future.")
         val dayFirstOfInstallment: LocalDate,
-        @field:Min(value = 1L, message = "Number of installments must be equal or greater than 1")
-        @field:Max(value = 12L, message = "Number of installments must be equal or smaller than 12")
+        @field:Min(value = 1, message = "Number of installments must be equal to or greater than 1.")
+        @field:Max(value = 48, message = "Number of installments must be equal to or smaller than 48.")
         val numberOfInstallments: Int,
-        @field:NotNull(message = "Customer ID cannot be null")
+        @field:NotNull(message = "Customer ID is required.")
         val customerId: Long
 ) {
     fun toEntity(): Credit = Credit(
