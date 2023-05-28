@@ -8,6 +8,8 @@ import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.just
+import io.mockk.runs
 import io.mockk.verify
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
@@ -57,7 +59,7 @@ class CustomerServiceTest {
     }
 
     @Test
-    fun `should not find customer by id and throw BusinessException`() {
+    fun `should not find customer by invalid id and throw BusinessException`() {
         // given
         val id = Random().nextLong()
         every { customerRepository.findById(id) } returns Optional.empty()
@@ -71,7 +73,19 @@ class CustomerServiceTest {
     }
 
     @Test
-    fun delete() {
+    fun `should delete customer by id`() {
+        // given
+        val id = Random().nextLong()
+        val customer = buildCustomer(id = id)
+        every { customerRepository.findById(id) } returns Optional.of(customer)
+        every { customerRepository.delete(customer) } just runs
+
+        // when
+        customerService.delete(id)
+
+        // then
+        verify(exactly = 1) { customerRepository.findById(id) }
+        verify(exactly = 1) { customerRepository.delete(customer) }
     }
 
     private fun buildCustomer(
