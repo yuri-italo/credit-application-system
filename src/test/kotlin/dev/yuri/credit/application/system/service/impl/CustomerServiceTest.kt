@@ -2,6 +2,7 @@ package dev.yuri.credit.application.system.service.impl
 
 import dev.yuri.credit.application.system.entity.Address
 import dev.yuri.credit.application.system.entity.Customer
+import dev.yuri.credit.application.system.exception.BusinessException
 import dev.yuri.credit.application.system.repository.CustomerRepository
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -52,6 +53,20 @@ class CustomerServiceTest {
         Assertions.assertThat(customerFound).isExactlyInstanceOf(Customer::class.java)
         Assertions.assertThat(customerFound).isNotNull
         Assertions.assertThat(customerFound).isSameAs(customer)
+        verify(exactly = 1) { customerRepository.findById(id) }
+    }
+
+    @Test
+    fun `should not find customer by id and throw BusinessException`() {
+        // given
+        val id = Random().nextLong()
+        every { customerRepository.findById(id) } returns Optional.empty()
+
+        // when
+        // then
+        Assertions.assertThatExceptionOfType(BusinessException::class.java)
+                .isThrownBy { customerService.findById(id) }
+                .withMessage("Id $id not found")
         verify(exactly = 1) { customerRepository.findById(id) }
     }
 
