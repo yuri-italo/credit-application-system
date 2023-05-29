@@ -20,7 +20,6 @@ import java.time.LocalDate
 import java.util.Random
 import java.util.UUID
 
-@ActiveProfiles("test")
 @ExtendWith(MockKExtension::class)
 class CreditServiceTest {
     @MockK lateinit var creditRepository: CreditRepository
