@@ -50,6 +50,20 @@ class CreditRepositoryTest {
         Assertions.assertThat(returnedCredit2).isSameAs(credit2)
     }
 
+    @Test
+    fun `should not find credit by invalid credit code`() {
+        // given
+        val creditCode1 = UUID.fromString("aa547c0f-9a6a-451f-8c89-afddce916a29")
+
+        // when
+        val returnedCredit = creditRepository.findByCreditCode(creditCode1)
+
+        // then
+        Assertions.assertThat(returnedCredit).isNull()
+        Assertions.assertThat(returnedCredit).isNotSameAs(credit1)
+        Assertions.assertThat(returnedCredit).isNotSameAs(credit2)
+    }
+
     private fun buildCredit(
             creditValue: BigDecimal = BigDecimal.valueOf(500.0),
             dayFirstInstallment: LocalDate = LocalDate.of(2023, Month.APRIL, 22),
