@@ -1,5 +1,6 @@
 package dev.yuri.credit.application.system.controller
 
+import dev.yuri.credit.application.system.dto.CreditView
 import dev.yuri.credit.application.system.dto.CustomerDto
 import dev.yuri.credit.application.system.dto.CustomerUpdateDto
 import dev.yuri.credit.application.system.dto.CustomerView
@@ -25,12 +26,12 @@ class CustomerResource(
         private val customerService: CustomerService
 ) {
     @PostMapping
-    fun saveCustomer(@RequestBody @Valid customerDto: CustomerDto): ResponseEntity<String> {
+    fun saveCustomer(@RequestBody @Valid customerDto: CustomerDto): ResponseEntity<CustomerView> {
         val customer: Customer = customerDto.toEntity()
         val savedCustomer = this.customerService.save(customer)
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body("Customer ${savedCustomer.email} saved!")
+                .body(CustomerView(savedCustomer))
     }
 
     @GetMapping("/{id}")
