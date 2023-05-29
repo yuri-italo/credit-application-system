@@ -64,6 +64,22 @@ class CreditRepositoryTest {
         Assertions.assertThat(returnedCredit).isNotSameAs(credit2)
     }
 
+    @Test
+    fun `should find all credits by customer id`() {
+        // given
+        val customerId = 1L
+
+        // when
+        val credits = creditRepository.findAllByCustomerId(customerId)
+
+        // then
+        Assertions.assertThat(credits).isNotEmpty
+        Assertions.assertThat(credits.size).isEqualTo(2)
+        Assertions.assertThat(credits[0]).isSameAs(credit1)
+        Assertions.assertThat(credits[1]).isSameAs(credit2)
+    }
+
+
     private fun buildCredit(
             creditValue: BigDecimal = BigDecimal.valueOf(500.0),
             dayFirstInstallment: LocalDate = LocalDate.of(2023, Month.APRIL, 22),
