@@ -57,7 +57,20 @@ class CreditServiceTest {
     }
 
     @Test
-    fun findByCreditCode() {
+    fun `should return list of credits for a customer`() {
+        // given
+        val customerId = 1L
+        val credits = listOf(buildCredit(), buildCredit(), buildCredit())
+        every { creditRepository.findAllByCustomerId(customerId) } returns credits
+
+        // when
+        val returnedCredits = creditService.findAllByCustomer(customerId)
+
+        // then
+        Assertions.assertThat(returnedCredits).isNotNull
+        Assertions.assertThat(returnedCredits).isNotEmpty
+        Assertions.assertThat(returnedCredits).isSameAs(credits)
+        verify(exactly = 1) { creditRepository.findAllByCustomerId(customerId) }
     }
 
     companion object {
