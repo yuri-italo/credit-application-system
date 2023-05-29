@@ -17,6 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.test.context.ActiveProfiles
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.util.Random
 
 @ActiveProfiles("test")
 @ExtendWith(MockKExtension::class)
@@ -71,6 +72,23 @@ class CreditServiceTest {
         Assertions.assertThat(returnedCredits).isNotEmpty
         Assertions.assertThat(returnedCredits).isSameAs(credits)
         verify(exactly = 1) { creditRepository.findAllByCustomerId(customerId) }
+    }
+
+    @Test
+    fun `should return credit for a valid customer and credit code`() {
+        // given
+        val customerId = Random().nextLong()
+        val credit = buildCredit(customer = Customer(id = customerId))
+        val creditCode = credit.creditCode
+        every { creditRepository.findByCreditCode(creditCode) } returns credit
+
+        // when
+        val returnedCredit = creditService.findByCreditCode(customerId, creditCode)
+
+        // then
+        Assertions.assertThat(returnedCredit).isNotNull
+        Assertions.assertThat(returnedCredit).isSameAs(credit)
+        verify(exactly = 1) { creditRepository.findByCreditCode(creditCode) }
     }
 
     companion object {
