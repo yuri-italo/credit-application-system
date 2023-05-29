@@ -155,6 +155,43 @@ class CustomerResourceTest {
         resultActions.andDo(MockMvcResultHandlers.print())
     }
 
+    @Test
+    fun `should delete customer by id and return 204 status`() {
+        // given
+        val customer = customerRepository.save(builderCustomerDto().toEntity())
+
+        // when
+        val resultActions = mockMvc.perform(MockMvcRequestBuilders.delete("$URL/${customer.id}")
+                .accept(MediaType.APPLICATION_JSON)
+        )
+
+        // then
+        resultActions.andExpect(MockMvcResultMatchers.status().isNoContent)
+        resultActions.andDo(MockMvcResultHandlers.print())
+    }
+
+    @Test
+    fun `should not delete customer by invalid id and return 400 status`() {
+        // given
+        val id = 2L
+
+        // when
+        val resultActions = mockMvc.perform(MockMvcRequestBuilders.delete("$URL/${id}")
+                .accept(MediaType.APPLICATION_JSON)
+        )
+
+        // then
+        resultActions.andExpect(MockMvcResultMatchers.status().isBadRequest)
+        resultActions.andExpect(MockMvcResultMatchers.jsonPath("$.title")
+                .value("Business Error"))
+        resultActions.andExpect(MockMvcResultMatchers.jsonPath("$.timeStamp").exists())
+        resultActions.andExpect(MockMvcResultMatchers.jsonPath("$.status").value(400))
+        resultActions.andExpect(MockMvcResultMatchers.jsonPath("$.exception")
+                .value("dev.yuri.credit.application.system.exception.BusinessException"))
+        resultActions.andExpect(MockMvcResultMatchers.jsonPath("$.details[*]").isNotEmpty)
+        resultActions.andDo(MockMvcResultHandlers.print())
+    }
+
     private fun builderCustomerDto(
             firstName: String = "Shelton",
             lastName: String = "Mello",
