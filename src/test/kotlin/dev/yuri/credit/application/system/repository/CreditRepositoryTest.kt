@@ -3,7 +3,9 @@ package dev.yuri.credit.application.system.repository
 import dev.yuri.credit.application.system.entity.Address
 import dev.yuri.credit.application.system.entity.Credit
 import dev.yuri.credit.application.system.entity.Customer
+import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
@@ -12,6 +14,7 @@ import org.springframework.test.context.ActiveProfiles
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.Month
+import java.util.*
 
 @ActiveProfiles("test")
 @DataJpaTest
@@ -28,6 +31,23 @@ class CreditRepositoryTest {
         customer = testEntityManager.persist(buildCustomer())
         credit1 = testEntityManager.persist(buildCredit(customer = customer))
         credit2 = testEntityManager.persist(buildCredit(customer = customer))
+    }
+
+    @Test
+    fun `should find credit by credit code`() {
+        // given
+        val creditCode1 = credit1.creditCode
+        val creditCode2 = credit2.creditCode
+
+        // when
+        val returnedCredit = creditRepository.findByCreditCode(creditCode1)
+        val returnedCredit2 = creditRepository.findByCreditCode(creditCode2)
+
+        // then
+        Assertions.assertThat(returnedCredit).isNotNull
+        Assertions.assertThat(returnedCredit2).isNotNull
+        Assertions.assertThat(returnedCredit).isSameAs(credit1)
+        Assertions.assertThat(returnedCredit2).isSameAs(credit2)
     }
 
     private fun buildCredit(
