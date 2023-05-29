@@ -43,6 +43,18 @@ class CreditServiceTest {
         verify(exactly = 1) { creditRepository.save(credit) }
     }
 
+    @Test
+    fun `should not create credit when invalid day first installment`() {
+        // given
+        val credit = buildCredit(dayOfFirstInstallment = LocalDate.now().plusMonths(4L))
+
+        // when
+        // then
+        Assertions.assertThatExceptionOfType(BusinessException::class.java)
+                .isThrownBy { creditService.save(credit) }
+                .withMessage("The day of the first installment must be within the next 3 months.")
+        verify(exactly = 0) { creditRepository.save(credit) }
+    }
 
     @Test
     fun findByCreditCode() {
