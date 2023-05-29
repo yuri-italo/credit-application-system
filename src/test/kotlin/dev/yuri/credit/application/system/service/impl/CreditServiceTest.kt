@@ -18,6 +18,7 @@ import org.springframework.test.context.ActiveProfiles
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.Random
+import java.util.UUID
 
 @ActiveProfiles("test")
 @ExtendWith(MockKExtension::class)
@@ -88,6 +89,21 @@ class CreditServiceTest {
         // then
         Assertions.assertThat(returnedCredit).isNotNull
         Assertions.assertThat(returnedCredit).isSameAs(credit)
+        verify(exactly = 1) { creditRepository.findByCreditCode(creditCode) }
+    }
+
+    @Test
+    fun `should throw BusinessException for invalid credit code`() {
+        // given
+        val customerId = Random().nextLong()
+        val creditCode = UUID.randomUUID()
+        every { creditRepository.findByCreditCode(creditCode) } returns null
+
+        // when
+        // then
+        Assertions.assertThatExceptionOfType(BusinessException::class.java)
+                .isThrownBy { creditService.findByCreditCode(customerId,creditCode) }
+                .withMessage("Credit code $creditCode not found")
         verify(exactly = 1) { creditRepository.findByCreditCode(creditCode) }
     }
 
