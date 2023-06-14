@@ -3,6 +3,7 @@ package dev.yuri.credit.application.system.controller
 import com.fasterxml.jackson.databind.ObjectMapper
 import dev.yuri.credit.application.system.dto.CreditDto
 import dev.yuri.credit.application.system.dto.CustomerDto
+import dev.yuri.credit.application.system.entity.Credit
 import dev.yuri.credit.application.system.repository.CreditRepository
 import dev.yuri.credit.application.system.repository.CustomerRepository
 import org.junit.jupiter.api.AfterEach
@@ -23,6 +24,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.Random
+import java.util.UUID
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -132,8 +134,6 @@ class CreditResourceTest {
             creditValue = BigDecimal.valueOf(5000),
             numberOfInstallments = 7).toEntity()
         )
-        val creditCode = customerCredit.creditCode.toString()
-        val creditCode2 = customerCredit2.creditCode.toString()
 
         // when
         val resultActions = mockMvc.perform(MockMvcRequestBuilders.get("$URL?customerId=${customer.id}")
@@ -143,12 +143,14 @@ class CreditResourceTest {
         // then
         resultActions.andExpect(MockMvcResultMatchers.status().isOk)
         resultActions.andExpect(MockMvcResultMatchers.jsonPath("$.size()").value(2))
-        resultActions.andExpect(MockMvcResultMatchers.jsonPath("$.[0].creditCode").value(creditCode))
+        resultActions.andExpect(MockMvcResultMatchers.jsonPath("$.[0].creditCode")
+                .value(customerCredit.creditCode.toString()))
         resultActions.andExpect(MockMvcResultMatchers.jsonPath("$.[0].creditValue")
                 .value("1000.0"))
         resultActions.andExpect(MockMvcResultMatchers.jsonPath("$.[0].numberOfInstallments")
                 .value(5))
-        resultActions.andExpect(MockMvcResultMatchers.jsonPath("$.[1].creditCode").value(creditCode2))
+        resultActions.andExpect(MockMvcResultMatchers.jsonPath("$.[1].creditCode")
+                .value(customerCredit2.creditCode.toString()))
         resultActions.andExpect(MockMvcResultMatchers.jsonPath("$.[1].creditValue")
                 .value("5000.0"))
         resultActions.andExpect(MockMvcResultMatchers.jsonPath("$.[1].numberOfInstallments")
@@ -174,7 +176,79 @@ class CreditResourceTest {
     }
 
     @Test
-    fun findByCreditCode() {
+    fun `should find credit if credit code and customer id are valid and return 200 status`() {
+        // given
+        val customer = customerRepository.save(customerDtoBuilder().toEntity())
+        val credit = creditRepository.save(creditDtoBuilder(customerId = customer.id!!).toEntity())
+
+        // when
+        val resultActions = mockMvc.perform(MockMvcRequestBuilders
+                .get("$URL/${credit.creditCode}?customerId=${customer.id}")
+                .accept(MediaType.APPLICATION_JSON)
+        )
+
+        // then
+        resultActions.andExpect(MockMvcResultMatchers.status().isOk)
+        resultActions.andExpect(MockMvcResultMatchers.jsonPath("$.creditCode")
+                .value(credit.creditCode.toString()))
+        resultActions.andExpect(MockMvcResultMatchers.jsonPath("$.creditValue").value(credit.creditValue))
+        resultActions.andExpect(MockMvcResultMatchers.jsonPath("$.numberOfInstallments")
+                .value(5))
+        resultActions.andExpect(MockMvcResultMatchers.jsonPath("$.status").value(credit.status.toString()))
+        resultActions.andExpect(MockMvcResultMatchers.jsonPath("$.emailCustomer")
+                .value(customer.email))
+        resultActions.andExpect(MockMvcResultMatchers.jsonPath("$.incomeCostumer")
+                .value(customer.income))
+        resultActions.andDo(MockMvcResultHandlers.print())
+    }
+
+    @Test
+    fun `should not find credit if credit code does not exist and return 400 status`() {
+        // given
+        val customer = customerRepository.save(customerDtoBuilder().toEntity())
+        val invalidCreditCode = UUID.randomUUID()
+
+        // when
+        val resultActions = mockMvc.perform(MockMvcRequestBuilders
+                .get("$URL/${invalidCreditCode}?customerId=${customer.id}")
+                .accept(MediaType.APPLICATION_JSON)
+        )
+
+        // then
+        resultActions.andExpect(MockMvcResultMatchers.status().isBadRequest)
+        resultActions.andExpect(MockMvcResultMatchers.jsonPath("$.title")
+                .value("Business Error"))
+        resultActions.andExpect(MockMvcResultMatchers.jsonPath("$.timeStamp").exists())
+        resultActions.andExpect(MockMvcResultMatchers.jsonPath("$.status").value(400))
+        resultActions.andExpect(MockMvcResultMatchers.jsonPath("$.exception")
+                .value("dev.yuri.credit.application.system.exception.BusinessException"))
+        resultActions.andExpect(MockMvcResultMatchers.jsonPath("$.details[*]").isNotEmpty)
+        resultActions.andDo(MockMvcResultHandlers.print())
+    }
+
+    @Test
+    fun `should not find credit if customer id is different to credit's customer id and return 400 status`() {
+        // given
+        val customer = customerRepository.save(customerDtoBuilder().toEntity())
+        val credit = creditRepository.save(creditDtoBuilder(customerId = customer.id!!).toEntity())
+        val invalidCustomerId = Random().nextLong()
+
+        // when
+        val resultActions = mockMvc.perform(MockMvcRequestBuilders
+                .get("$URL/${credit.creditCode}?customerId=${invalidCustomerId}")
+                .accept(MediaType.APPLICATION_JSON)
+        )
+
+        // then
+        resultActions.andExpect(MockMvcResultMatchers.status().isBadRequest)
+        resultActions.andExpect(MockMvcResultMatchers.jsonPath("$.title")
+                .value("Invalid Argument Error"))
+        resultActions.andExpect(MockMvcResultMatchers.jsonPath("$.timeStamp").exists())
+        resultActions.andExpect(MockMvcResultMatchers.jsonPath("$.status").value(400))
+        resultActions.andExpect(MockMvcResultMatchers.jsonPath("$.exception")
+                .value("java.lang.IllegalArgumentException"))
+        resultActions.andExpect(MockMvcResultMatchers.jsonPath("$.details[*]").isNotEmpty)
+        resultActions.andDo(MockMvcResultHandlers.print())
     }
 
     private fun creditDtoBuilder(
