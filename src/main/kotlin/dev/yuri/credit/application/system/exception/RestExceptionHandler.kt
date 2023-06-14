@@ -67,7 +67,7 @@ class RestExceptionHandler {
                         status = HttpStatus.BAD_REQUEST.value(),
                         exception = e.javaClass.name,
                         details = mutableMapOf(e.cause.toString() to e.message)
-                ), HttpStatus.CONFLICT
+                ), HttpStatus.BAD_REQUEST
         )
     }
 }
