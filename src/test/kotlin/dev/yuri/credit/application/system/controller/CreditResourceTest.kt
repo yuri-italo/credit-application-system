@@ -51,8 +51,8 @@ class CreditResourceTest {
     @Test
     fun `should create credit and return 201 status`() {
         // given
-        val creditDto = creditDtoBuilder()
         val customer = customerRepository.save(customerDtoBuilder().toEntity())
+        val creditDto = creditDtoBuilder(customerId = customer.id!!)
         val valueAsString = objectMapper.writeValueAsString(creditDto)
 
         // when
@@ -123,7 +123,54 @@ class CreditResourceTest {
     }
 
     @Test
-    fun findAllByCustomerId() {
+    fun `should return a list of all credits by customer id and return 200 status`() {
+        // given
+        val customer = customerRepository.save(customerDtoBuilder().toEntity())
+        val customerCredit = creditRepository.save(creditDtoBuilder(customerId = customer.id!!).toEntity())
+        val customerCredit2 = creditRepository.save(
+            creditDtoBuilder(customerId = customer.id!!,
+            creditValue = BigDecimal.valueOf(5000),
+            numberOfInstallments = 7).toEntity()
+        )
+        val creditCode = customerCredit.creditCode.toString()
+        val creditCode2 = customerCredit2.creditCode.toString()
+
+        // when
+        val resultActions = mockMvc.perform(MockMvcRequestBuilders.get("$URL?customerId=${customer.id}")
+                .accept(MediaType.APPLICATION_JSON)
+        )
+
+        // then
+        resultActions.andExpect(MockMvcResultMatchers.status().isOk)
+        resultActions.andExpect(MockMvcResultMatchers.jsonPath("$.size()").value(2))
+        resultActions.andExpect(MockMvcResultMatchers.jsonPath("$.[0].creditCode").value(creditCode))
+        resultActions.andExpect(MockMvcResultMatchers.jsonPath("$.[0].creditValue")
+                .value("1000.0"))
+        resultActions.andExpect(MockMvcResultMatchers.jsonPath("$.[0].numberOfInstallments")
+                .value(5))
+        resultActions.andExpect(MockMvcResultMatchers.jsonPath("$.[1].creditCode").value(creditCode2))
+        resultActions.andExpect(MockMvcResultMatchers.jsonPath("$.[1].creditValue")
+                .value("5000.0"))
+        resultActions.andExpect(MockMvcResultMatchers.jsonPath("$.[1].numberOfInstallments")
+                .value(7))
+        resultActions.andDo(MockMvcResultHandlers.print())
+    }
+
+    @Test
+    fun `should return an empty list of credits if customer id does not exist and return 200 status`() {
+        // given
+        val nonExistingCustomerId = 2L
+
+        // when
+        val resultActions = mockMvc.perform(MockMvcRequestBuilders
+                .get("$URL?customerId=${nonExistingCustomerId}")
+                .accept(MediaType.APPLICATION_JSON)
+        )
+
+        // then
+        resultActions.andExpect(MockMvcResultMatchers.status().isOk)
+        resultActions.andExpect(MockMvcResultMatchers.jsonPath("$.size()").value(0))
+        resultActions.andDo(MockMvcResultHandlers.print())
     }
 
     @Test
